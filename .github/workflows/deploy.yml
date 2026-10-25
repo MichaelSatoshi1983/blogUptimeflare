@@ -100,19 +100,40 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ steps.fetch_account_id.outputs.account_id }}
 
       - name: Deploy using Terraform
-        # As we don't save terraform state somewhere, we need to import the existing resources
         run: |
           terraform init
 
-          KV_ID=$(curl https://api.cloudflare.com/client/v4/accounts/$TF_VAR_CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces\?per_page\=100 --header 'Authorization: Bearer '$CLOUDFLARE_API_TOKEN | jq -r '.result[] | select(.title == "uptimeflare_kv") | .id')
-          if [ -n "$KV_ID" ]; then
-            echo "Importing existing resources..."
+          API_BASE="https://api.cloudflare.com/client/v4/accounts/$TF_VAR_CLOUDFLARE_ACCOUNT_ID"
+          AUTH_HEADER="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+
+          KV_ID=$(curl --fail-with-body --silent --show-error \
+               --url "$API_BASE/storage/kv/namespaces?per_page=100" \
+               --header "$AUTH_HEADER" | jq -r '.result[]? | select(.title == "uptimeflare_kv") | .id' | head -n1)
+          if [[ -n "$KV_ID" ]]; then
             terraform import cloudflare_workers_kv_namespace.uptimeflare_kv "$TF_VAR_CLOUDFLARE_ACCOUNT_ID/$KV_ID"
+          fi
+
+          if curl --silent --show-error --fail --output /dev/null \
+               --url "$API_BASE/workers/scripts/uptimeflare_worker" \
+               --header "$AUTH_HEADER"; then
             terraform import cloudflare_worker_script.uptimeflare "$TF_VAR_CLOUDFLARE_ACCOUNT_ID/uptimeflare_worker"
-            terraform import cloudflare_worker_cron_trigger.uptimeflare_worker_cron "$TF_VAR_CLOUDFLARE_ACCOUNT_ID/uptimeflare_worker"
+
+            if curl --silent --show-error --fail --output /dev/null \
+                 --url "$API_BASE/workers/scripts/uptimeflare_worker/schedules" \
+                 --header "$AUTH_HEADER"; then
+              SCHEDULE_COUNT=$(curl --fail-with-body --silent --show-error \
+                   --url "$API_BASE/workers/scripts/uptimeflare_worker/schedules" \
+                   --header "$AUTH_HEADER" | jq -r '.result | length')
+              if [[ "$SCHEDULE_COUNT" -gt 0 ]]; then
+                terraform import cloudflare_worker_cron_trigger.uptimeflare_worker_cron "$TF_VAR_CLOUDFLARE_ACCOUNT_ID/uptimeflare_worker"
+              fi
+            fi
+          fi
+
+          if curl --silent --show-error --fail --output /dev/null \
+               --url "$API_BASE/pages/projects/uptimeflare" \
+               --header "$AUTH_HEADER"; then
             terraform import cloudflare_pages_project.uptimeflare "$TF_VAR_CLOUDFLARE_ACCOUNT_ID/uptimeflare"
-          else
-            echo "KV namespace not found, first-time setup."
           fi
 
           terraform apply -auto-approve -input=false
