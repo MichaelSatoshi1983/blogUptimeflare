@@ -1,5 +1,5 @@
 import { MonitorState, MonitorTarget } from '@/types/config'
-import { Accordion, Card, Center, Text } from '@mantine/core'
+import { Accordion, Card, Center, Stack, Text } from '@mantine/core'
 import MonitorDetail from './MonitorDetail'
 import { pageConfig } from '@/uptime.config'
 import { useEffect, useState } from 'react'
@@ -48,6 +48,12 @@ export default function MonitorList({
     localStorage.setItem('expandedGroups', JSON.stringify(expandedGroups))
   }, [expandedGroups])
 
+  const monitorCard = (monitor: MonitorTarget) => (
+    <Card key={monitor.id} shadow="sm" padding="lg" radius="md" withBorder>
+      <MonitorDetail monitor={monitor} state={state} />
+    </Card>
+  )
+
   if (groupedMonitor) {
     // Grouped monitors
     content = (
@@ -84,16 +90,12 @@ export default function MonitorList({
               </div>
             </Accordion.Control>
             <Accordion.Panel>
-              {monitors
-                .filter((monitor) => group[groupName].includes(monitor.id))
-                .sort((a, b) => group[groupName].indexOf(a.id) - group[groupName].indexOf(b.id))
-                .map((monitor) => (
-                  <div key={monitor.id}>
-                    <Card.Section ml="xs" mr="xs">
-                      <MonitorDetail monitor={monitor} state={state} />
-                    </Card.Section>
-                  </div>
-                ))}
+              <Stack gap="md">
+                {monitors
+                  .filter((monitor) => group[groupName].includes(monitor.id))
+                  .sort((a, b) => group[groupName].indexOf(a.id) - group[groupName].indexOf(b.id))
+                  .map(monitorCard)}
+              </Stack>
             </Accordion.Panel>
           </Accordion.Item>
         ))}
@@ -101,29 +103,14 @@ export default function MonitorList({
     )
   } else {
     // Ungrouped monitors
-    content = monitors.map((monitor) => (
-      <div key={monitor.id}>
-        <Card.Section ml="xs" mr="xs">
-          <MonitorDetail monitor={monitor} state={state} />
-        </Card.Section>
-      </div>
-    ))
+    content = <Stack gap="md">{monitors.map(monitorCard)}</Stack>
   }
 
   return (
     <Center>
-      <Card
-        shadow="sm"
-        padding="lg"
-        radius="md"
-        ml="md"
-        mr="md"
-        mt="xl"
-        withBorder={!groupedMonitor}
-        style={{ width: groupedMonitor ? '897px' : '865px' }}
-      >
+      <div style={{ width: 'min(865px, calc(100% - 32px))', marginTop: 'var(--mantine-spacing-xl)' }}>
         {content}
-      </Card>
+      </div>
     </Center>
   )
 }
