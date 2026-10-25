@@ -1,7 +1,7 @@
 import { MaintenanceConfig, PageConfig, WorkerConfig } from './types/config'
 
 const pageConfig: PageConfig = {
-  title: 'eth0.bond 服务状态',
+  title: 'eth0.bond Status',
 }
 
 const workerConfig: WorkerConfig = {
@@ -9,7 +9,7 @@ const workerConfig: WorkerConfig = {
   monitors: [
     {
       id: 'eth0-blog',
-      name: '博客主站点',
+      name: 'Main Blog',
       method: 'GET',
       target: 'https://eth0.bond',
       statusPageLink: 'https://eth0.bond',
@@ -18,7 +18,7 @@ const workerConfig: WorkerConfig = {
     },
     {
       id: 'eth0-image',
-      name: '图床',
+      name: 'Image Hosting',
       method: 'GET',
       target: 'https://img.eth0.bond',
       statusPageLink: 'https://img.eth0.bond',
@@ -27,7 +27,7 @@ const workerConfig: WorkerConfig = {
     },
     {
       id: 'kindle-stats',
-      name: 'Kindle 阅读统计',
+      name: 'Kindle Reading Stats',
       method: 'GET',
       target: 'https://kindle.eth0.bond',
       statusPageLink: 'https://kindle.eth0.bond',
