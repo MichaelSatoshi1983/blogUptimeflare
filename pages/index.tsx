@@ -5,7 +5,6 @@ import { MonitorState, MonitorTarget } from '@/types/config'
 import { KVNamespace } from '@cloudflare/workers-types'
 import { maintenances, pageConfig, workerConfig } from '@/uptime.config'
 import OverallStatus from '@/components/OverallStatus'
-import Header from '@/components/Header'
 import MonitorList from '@/components/MonitorList'
 import { Center, Text } from '@mantine/core'
 import MonitorDetail from '@/components/MonitorDetail'
@@ -49,8 +48,6 @@ export default function Home({
       </Head>
 
       <main className={inter.className}>
-        <Header />
-
         {state == undefined ? (
           <Center>
             <Text fw={700}>
