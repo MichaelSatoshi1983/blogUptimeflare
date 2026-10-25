@@ -9,7 +9,7 @@ const workerConfig: WorkerConfig = {
   monitors: [
     {
       id: 'eth0-blog',
-      name: 'Main Blog',
+      name: 'Blog',
       method: 'GET',
       target: 'https://eth0.bond',
       statusPageLink: 'https://eth0.bond',
@@ -32,6 +32,15 @@ const workerConfig: WorkerConfig = {
       target: 'https://kindle.eth0.bond',
       statusPageLink: 'https://kindle.eth0.bond',
       expectedCodes: [200, 401],
+      timeout: 10000,
+    },
+    {
+      id: 'sso-login',
+      name: 'SSO',
+      method: 'GET',
+      target: 'https://sso.eth0.bond',
+      statusPageLink: 'https://sso.eth0.bond',
+      expectedCodes: [200],
       timeout: 10000,
     },
   ],
